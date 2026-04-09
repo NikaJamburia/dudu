@@ -18,6 +18,7 @@ Your browser does not support the audio element.
             const fontStepPx = 2;
             const verticalCountMax = 25;
             const duduFontSize = 75;
+            const text = "DUDU";
 
 
             let count = 0;
@@ -32,7 +33,7 @@ Your browser does not support the audio element.
 
                 contentDiv.innerHTML = "";
                 intervalId = setInterval(() => {
-                    contentDiv.innerHTML += `<div style="font-size: ${duduFontSize}px;">DUDU</div>`;
+                    contentDiv.innerHTML += `<div style="font-size: ${duduFontSize}px;">${text}</div>`;
                     verticalCount++;
                     if(verticalCount > verticalCountMax) {
                         clearInterval(intervalId);
