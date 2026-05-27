@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MARI</title>
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html, body {
+    height: 100%;
+  }
+
+  body {
+    font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+    background: linear-gradient(135deg, #ffd1e8 0%, #ffe1f0 40%, #d7e3ff 100%);
+    background-size: 300% 300%;
+    animation: bgShift 18s ease infinite;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    color: #6b3a5b;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  @keyframes bgShift {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  .hearts {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 0;
+  }
+
+  .hearts span,
+  .hearts img {
+    position: absolute;
+    bottom: -40px;
+    font-size: 22px;
+    opacity: 0;
+    animation: floatUp linear infinite;
+  }
+
+  @keyframes floatUp {
+    0%   { transform: translateY(0) scale(0.6) rotate(0deg); opacity: 0; }
+    15%  { opacity: 0.8; }
+    100% { transform: translateY(-110vh) scale(1.1) rotate(360deg); opacity: 0; }
+  }
+
+  .stage {
+    position: relative;
+    z-index: 1;
+    width: 90%;
+    max-width: 620px;
+    min-height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .slide {
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 28px;
+    padding: 44px 30px;
+    box-shadow: 0 18px 50px rgba(214, 122, 170, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(30px) scale(0.96);
+    transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .slide.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+  }
+
+  .slide.leaving {
+    opacity: 0;
+    visibility: visible;
+    transform: translateY(-30px) scale(0.96);
+  }
+
+  .slide .emoji {
+    font-size: 64px;
+    display: block;
+    margin-bottom: 18px;
+    animation: pulse 2.4s ease-in-out infinite;
+  }
+
+  img.emoji {
+    width: clamp(160px, 50vw, 280px);
+    height: auto;
+    margin: 0 auto 18px;
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(214, 122, 170, 0.4);
+    object-fit: cover;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.15); }
+  }
+
+  .slide h1 {
+    font-size: clamp(26px, 6vw, 42px);
+    line-height: 1.25;
+    color: #c2407d;
+    margin-bottom: 16px;
+    font-weight: 700;
+  }
+
+  .slide p {
+    font-size: clamp(16px, 4vw, 20px);
+    line-height: 1.6;
+    color: #7a4866;
+  }
+
+  /* Next button — centered inside the card */
+  .next-btn {
+    display: inline-block;
+    margin-top: 30px;
+
+    background: linear-gradient(135deg, #ff7eb3, #ff5e9c);
+    color: #fff;
+    border: none;
+    padding: 15px 40px;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 10px 25px rgba(255, 94, 156, 0.5);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.4s ease;
+  }
+
+  .next-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 30px rgba(255, 94, 156, 0.6);
+  }
+
+  .next-btn:active {
+    transform: translateY(0) scale(0.96);
+  }
+
+  /* Final slide gives the button a softer "start over" look */
+  .next-btn.restart {
+    background: linear-gradient(135deg, #8aa9ff, #6f8cff);
+    box-shadow: 0 10px 25px rgba(111, 140, 255, 0.5);
+  }
+
+  /* End screen — plain text, no card */
+  .end-screen {
+    position: relative;
+    z-index: 1;
+    width: 90%;
+    max-width: 620px;
+    text-align: center;
+    padding: 24px;
+    color: #c2407d;
+    font-size: clamp(24px, 6vw, 40px);
+    font-weight: 700;
+    line-height: 1.4;
+    text-shadow: 0 2px 12px rgba(255, 255, 255, 0.6);
+
+    display: none;
+    opacity: 0;
+    transform: translateY(20px) scale(0.97);
+    transition: opacity 1s ease, transform 1s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .end-screen.show {
+    display: block;
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  @media (max-width: 480px) {
+    .slide { padding: 36px 22px; border-radius: 22px; }
+    .next-btn { bottom: 24px; padding: 14px 34px; font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+  <div class="hearts" id="hearts"></div>
+
+  <div class="stage" id="stage"></div>
+
+  <!-- End screen: replace the placeholder below with your final text -->
+  <div class="end-screen" id="endScreen">
+    GAKOCE BEEEEEVRI 💋
+  </div>
+
+  <script>
+    const slides = [
+      { emoji: "💖", title: "MARI!", text: "Daachire qvemot gilaks" },
+      { emoji: "🌸", title: "DZALIAN", text: "" },
+      { emoji: "💌", title: "DZALIAN", text: "" },
+      { emoji: "💕", title: "MIYVARXAR", text: "" },
+      { emoji: "🌸", title: "DA", text: "" },
+      { emoji: "assets/kamaz.png", title: "MABEDNIEREB", text: "Dzalian madlieri var rom chem cxovrebashi xar" },
+      { emoji: "assets/cats.jpg", title: "MINDA ROM", text: "SUL ASE VIYOT!!!" },
+      { emoji: "assets/flowers.webp", title: "ES YVAVYLEBI SHENTVIS", text: "" },
+      { emoji: "assets/frog.webp", title: "ASEVE", text: "Dges east pointshi gavidet, chemo siyvarulo?" },
+    ];
+
+    const stage = document.getElementById("stage");
+    const isLast = (i) => i === slides.length - 1;
+    const isImage = (item) => /\.(png|gif|jpe?g|webp|svg)$/i.test(item);
+
+    // Build slide elements, each with its own button
+    const slideEls = slides.map((data, i) => {
+      const el = document.createElement("div");
+      el.className = "slide" + (i === 0 ? " active" : "");
+      const visual = isImage(data.emoji)
+        ? '<img class="emoji" src="' + data.emoji + '" alt="" />'
+        : '<span class="emoji">' + data.emoji + '</span>';
+      el.innerHTML =
+        visual +
+        '<h1>' + data.title + '</h1>' +
+        '<p>' + data.text + '</p>' +
+        '<button class="next-btn' + (isLast(i) ? ' restart' : '') + '">' +
+          "&gt;&gt;&gt;&gt;&gt;" +
+        '</button>';
+
+      el.querySelector(".next-btn").addEventListener("click", () => {
+        if (isLast(i)) {
+          showEnd();
+        } else {
+          goTo(i + 1);
+        }
+      });
+
+      stage.appendChild(el);
+      return el;
+    });
+
+    const endScreen = document.getElementById("endScreen");
+
+    function showEnd() {
+      const from = slideEls[current];
+      from.classList.remove("active");
+      from.classList.add("leaving");
+
+      // Fade the last card out, then reveal the plain end text
+      setTimeout(() => {
+        from.classList.remove("leaving");
+        stage.style.display = "none";
+        endScreen.classList.add("show");
+      }, 250);
+    }
+
+    let current = 0;
+
+    function goTo(next) {
+      const from = slideEls[current];
+      const to = slideEls[next];
+
+      from.classList.remove("active");
+      from.classList.add("leaving");
+
+      setTimeout(() => {
+        from.classList.remove("leaving");
+        to.classList.add("active");
+      }, 250);
+
+      current = next;
+    }
+
+    const heartsContainer = document.getElementById("hearts");
+    const heartChars = [
+      "💗", "🌸", "💙", "💗", "💗", "💋",
+      "assets/kamaz.png",
+      "assets/kamaz.png",
+      "assets/kamaz.png",
+      "assets/kamaz.png",
+      "assets/my-cats.png",
+      "assets/my-cats.png",
+      "assets/my-cats.png",
+    ];
+
+    function spawnHeart() {
+      const item = heartChars[Math.floor(Math.random() * heartChars.length)];
+      let node;
+
+      if (isImage(item)) {
+        const imgSize = 100;
+        node = document.createElement("img");
+        node.src = item;
+        node.alt = "";
+        node.style.width = imgSize + "px";
+        node.style.height = "auto";
+        // If the PNG is missing/broken, skip it gracefully.
+        node.addEventListener("error", () => node.remove());
+      } else {
+        let textSize = 16 * Math.random() + 20;
+        node = document.createElement("span");
+        node.textContent = item;
+        node.style.fontSize = textSize + "px";
+      }
+
+      node.style.left = Math.random() * 100 + "vw";
+      const duration = 6 + Math.random() * 6;
+      node.style.animationDuration = duration + "s";
+      heartsContainer.appendChild(node);
+      setTimeout(() => node.remove(), duration * 1000);
+    }
+
+    setInterval(spawnHeart, 700);
+  </script>
+</body>
+</html>
