@@ -80,6 +80,47 @@
         }
         .touch-btn:active { background: #ffe0f0; color: #d6418a; }
         body.touch #touch-controls { display: flex; }
+        /* ---- Celebration overlay ---- */
+        #celebration {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(42, 10, 31, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 999;
+        }
+        #celebration.show { display: flex; }
+        #celebration .msg {
+            font-size: clamp(40px, 9vw, 96px);
+            font-weight: bold;
+            color: #fff;
+            text-align: center;
+            padding: 0 16px;
+            text-shadow: 0 0 18px #ff4f9a, 0 0 36px #ff4f9a;
+            animation: pop 0.6s ease-out, pulse 1.2s ease-in-out 0.6s infinite;
+        }
+        @keyframes pop {
+            0%   { transform: scale(0) rotate(-12deg); opacity: 0; }
+            70%  { transform: scale(1.2) rotate(4deg); opacity: 1; }
+            100% { transform: scale(1) rotate(0); opacity: 1; }
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50%      { transform: scale(1.08); }
+        }
+        .confetti {
+            position: fixed;
+            top: -20px;
+            font-size: 28px;
+            z-index: 998;
+            pointer-events: none;
+            animation: fall linear forwards;
+        }
+        @keyframes fall {
+            to { transform: translateY(110vh) rotate(720deg); }
+        }
     </style>
 </head>
 <audio controls autoplay loop>
@@ -92,6 +133,8 @@
         <img id="nika" src="assets/nika.png" alt="nika">
         <img id="mari" src="assets/mari.png" alt="mari">
     </div>
+
+    <div id="celebration"><div class="msg">მარი მიყვარხარ! 💖</div></div>
 
     <div id="touch-controls">
         <button class="touch-btn" id="btn-left">◀</button>
@@ -110,7 +153,30 @@
         const FLOWER_EMOJIS = ['🌸', '🌹', '🌻', '🌷', '🌺', '💐', '🏵️', '🌼'];
 
         let score = 0;
+        let celebrated = false;
         const keys = { left: false, right: false };
+
+        // ---- Celebration when 10 flowers are caught ----
+        function celebrate() {
+            const overlay = document.getElementById('celebration');
+            overlay.classList.add('show');
+
+            // confetti shower 🎉
+            const pieces = ['🌸', '🌹', '🌷', '🌺', '💖', '💐', '✨', '🌼'];
+            for (let i = 0; i < 60; i++) {
+                const c = document.createElement('div');
+                c.className = 'confetti';
+                c.textContent = pieces[Math.floor(Math.random() * pieces.length)];
+                c.style.left = Math.random() * 100 + 'vw';
+                c.style.animationDuration = (2 + Math.random() * 2.5) + 's';
+                c.style.animationDelay = (Math.random() * 1.5) + 's';
+                document.body.appendChild(c);
+                setTimeout(() => c.remove(), 6000);
+            }
+
+            // hide the message after a few seconds so play can continue
+            setTimeout(() => overlay.classList.remove('show'), 5000);
+        }
 
         // --- Sizes scale with the game width so it looks right on any screen ---
         let mariW, nikaW, mariSpeed, flowerSize, flowerHalf;
@@ -258,6 +324,7 @@
                     if (fCenter >= mariX && fCenter <= mariX + mariW) {
                         score++;
                         scoreEl.textContent = score;
+                        if (score >= 10 && !celebrated) { celebrated = true; celebrate(); }
                         f.el.remove();
                         flowers.splice(i, 1);
                         continue;
