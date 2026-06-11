@@ -290,16 +290,27 @@
         scheduleSpawn();
 
         // ---- Main loop ----
-        function loop() {
+        // Movement is scaled by frame time so the speed is the same on a
+        // 60 Hz desktop and a 120 Hz phone (otherwise high-refresh screens
+        // run the game ~2x too fast).
+        let lastTime = performance.now();
+        function loop(now) {
+            // dt: how many 60 Hz frames have elapsed since the last loop.
+            // Clamp so a tab switch / lag spike can't teleport everything.
+            let dt = (now - lastTime) / (1000 / 60);
+            lastTime = now;
+            if (!isFinite(dt) || dt <= 0) dt = 1;
+            if (dt > 3) dt = 3;
+
             // Move mari
-            if (keys.left)  mariX -= mariSpeed;
-            if (keys.right) mariX += mariSpeed;
+            if (keys.left)  mariX -= mariSpeed * dt;
+            if (keys.right) mariX += mariSpeed * dt;
             mariX = Math.max(0, Math.min(W - mariW, mariX));
             mari.style.left = mariX + 'px';
 
             // Move nika (gradually accelerating over time)
-            if (nikaSpeed < nikaMaxSpeed) nikaSpeed += nikaAccel;
-            nikaX += nikaDir * nikaSpeed;
+            if (nikaSpeed < nikaMaxSpeed) nikaSpeed += nikaAccel * dt;
+            nikaX += nikaDir * nikaSpeed * dt;
             if (nikaX <= 0)            { nikaX = 0;            nikaDir = 1; }
             if (nikaX >= W - nikaW)   { nikaX = W - nikaW;   nikaDir = -1; }
             nika.style.left = nikaX + 'px';
@@ -308,8 +319,8 @@
             const mariTop = H - mariW - 10; // approximate catch line near mari's body
             for (let i = flowers.length - 1; i >= 0; i--) {
                 const f = flowers[i];
-                f.x += f.vx;
-                f.y += f.vy;
+                f.x += f.vx * dt;
+                f.y += f.vy * dt;
 
                 // bounce off side walls
                 if (f.x <= 0)               { f.x = 0;               f.vx = Math.abs(f.vx); }
